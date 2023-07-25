@@ -9,7 +9,9 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 def get_poem():
     poem_completion = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=[{"role": "user", "content": "Write a haiku poem about nature and technology."}])
     poem = poem_completion.choices[0].message.content
-    return (poem)
+    title_completion = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=[{"role": "user", "content": "Provide a title for this poem. {poem}"}])
+    title = title_completion.choices[0].message.content
+    return (title, poem)
 
 def get_img(path):
     get_img_prompt = f"In 20 words or less, suggest a prompt for creating an inspiring nature image. Suggest visual artists by name and styles."
@@ -25,22 +27,26 @@ def get_img(path):
 
 def create_content():
     path = "../skinnydip/content/blog/"
-    directory = datetime.datetime.now().strftime("%Y-%m-%d")    
-    new_post_path = os.path.join(path, directory)
+    date = datetime.datetime.now().strftime("%Y-%m-%d")    
+    new_post_path = os.path.join(path, date)
     os.mkdir(new_post_path)
     get_img(new_post_path)
-    poem = get_poem()
+    title, poem = get_poem()
+    create_post(title, poem, date, new_post_path)
 
-
-def create_post(path, title, date, post):
-    f = open(f'{path}/post.md', "w")
-    header = f'---\ntitle: {title}\ndate: {date}\nfeaturedImage: header.png \n---'
+def create_post(title, poem, date, path):
+    f = open(f'{path}/index.md', "w")
+    header = f'---\ntitle: {title}\ndate: \"{date}\"\nfeaturedImage: header.png \n---'
     f.write(header)
     f.write('\n')
-    f.write(post)
+    f.write('\n')
+    f.write('![nature image](./header.png)')
+    f.write('\n')
+    f.write('\n')
+    f.write(poem)
     f.close()
 
     
 
 if __name__ == "__main__":
-    create_post(".", "thistitle", datetime.datetime.now().strftime("%Y-%m-%d"), "This is a post" )
+    create_content()
